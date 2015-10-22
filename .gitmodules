@@ -1,3 +1,6 @@
 [submodule "raw/phase2"]
 	path = raw/phase2
 	url = ../phase2
+[submodule "code/ofhelpers"]
+	path = code/ofhelpers
+	url = /home/data/exppsy/forrest_gump/git/openfmri_code
