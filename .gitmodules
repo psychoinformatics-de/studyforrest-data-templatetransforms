@@ -4,3 +4,6 @@
 [submodule "code/ofhelpers"]
 	path = code/ofhelpers
 	url = /home/data/exppsy/forrest_gump/git/openfmri_code
+[submodule "raw/structural"]
+	path = raw/structural
+	url = ../structural

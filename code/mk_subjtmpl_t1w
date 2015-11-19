@@ -1,0 +1,54 @@
+#!/bin/bash
+
+set -e
+set -u
+
+subj=$1
+betopts="${2:--R -f 0.1 -g 0.0}"
+
+subjdir="${subj}/t1w"
+mkdir -p "${subjdir}"
+# this will produce the input to the freesurfer recon-all pipeline
+$FSLDIR/bin/fslreorient2std \
+	raw/structural/$subj/anat/${subj}_T1w \
+	${subjdir}/head
+
+$FSLDIR/bin/bet \
+	${subjdir}/head \
+	${subjdir}/brain \
+	-m ${betopts}
+
+mkdir -p "${subjdir}/in_mni152"
+$FSLDIR/bin/flirt -dof 12 \
+	-in ${subjdir}/brain \
+	-ref /usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz \
+	-omat "${subjdir}/in_mni152/subj2tmpl.mat" \
+	-out "${subjdir}/in_mni152/brain"
+
+$FSLDIR/bin/convert_xfm \
+	-omat "${subjdir}/in_mni152/tmpl2subj.mat" \
+	-inverse "${subjdir}/in_mni152/subj2tmpl.mat"
+
+## make the brain image's sform transform to MNI space
+#PYTHONPATH=code/ofhelpers python -c \
+#	"import os; os.chdir(\"${subjdir}\"); from openfmri.nipype_helpers import update_sform2mni; update_sform2mni(\"brain.nii.gz\", \"in_mni152/subj2tmpl.mat\", \"/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz\")"
+#mv "${subjdir}/updated_sform.nii.gz" "${subjdir}/brain.nii.gz"
+
+$FSLDIR/bin/fast -n 3 -t 1 -g -B -p \
+	-a "${subjdir}/in_mni152/tmpl2subj.mat" \
+	-o "${subjdir}/brain" \
+	"${subjdir}/brain"
+
+# rename FAST output
+mv "${subjdir}/brain_seg_0.nii.gz" "${subjdir}/brain_seg_csf.nii.gz"
+mv "${subjdir}/brain_seg_1.nii.gz" "${subjdir}/brain_seg_gray.nii.gz"
+mv "${subjdir}/brain_seg_2.nii.gz" "${subjdir}/brain_seg_white.nii.gz"
+mv "${subjdir}/brain_pve_0.nii.gz" "${subjdir}/brain_pve_csf.nii.gz"
+mv "${subjdir}/brain_pve_1.nii.gz" "${subjdir}/brain_pve_gray.nii.gz"
+mv "${subjdir}/brain_pve_2.nii.gz" "${subjdir}/brain_pve_white.nii.gz"
+mv "${subjdir}/brain_prob_0.nii.gz" "${subjdir}/brain_prob_csf.nii.gz"
+mv "${subjdir}/brain_prob_1.nii.gz" "${subjdir}/brain_prob_gray.nii.gz"
+mv "${subjdir}/brain_prob_2.nii.gz" "${subjdir}/brain_prob_white.nii.gz"
+mv "${subjdir}/brain_restore.nii.gz" "${subjdir}/brain_nobias.nii.gz"
+mv "${subjdir}/brain_gm_stdspace.nii.gz" "${subjdir}/brain_gray_stdspace.nii.gz"
+mv "${subjdir}/brain_wm_stdspace.nii.gz" "${subjdir}/brain_white_stdspace.nii.gz"

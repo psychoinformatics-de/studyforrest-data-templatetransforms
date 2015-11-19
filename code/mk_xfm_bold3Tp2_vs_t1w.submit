@@ -1,0 +1,42 @@
+universe = vanilla
+output = condor_logs/$(CLUSTER).$(PROCESS).out
+error = condor_logs/$(CLUSTER).$(PROCESS).err
+log = condor_logs/$(CLUSTER).$(PROCESS).log
+initialdir = /home/data/psyinf/forrest_gump/collection/tnt
+getenv = True
+request_cpus = 1
+request_memory = 1000
+should_transfer_files = NO
+transfer_executable = False
+executable = /home/data/psyinf/forrest_gump/collection/tnt/code/mk_xfm_bold3Tp2_vs_t1w
+
+arguments = sub-01
+queue
+arguments = sub-02
+queue
+arguments = sub-03
+queue
+arguments = sub-04
+queue
+arguments = sub-05
+queue
+arguments = sub-06
+queue
+arguments = sub-09
+queue
+arguments = sub-10
+queue
+arguments = sub-14
+queue
+arguments = sub-15
+queue
+arguments = sub-16
+queue
+arguments = sub-17
+queue
+arguments = sub-18
+queue
+arguments = sub-19
+queue
+arguments = sub-20
+queue
