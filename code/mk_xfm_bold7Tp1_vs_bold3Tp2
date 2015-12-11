@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -e
+set -u
+
+subj=$1
+
+b7dir="${subj}/bold7Tp1"
+b3dir="${subj}/bold3Tp2"
+
+mkdir -p "${b3dir}/in_bold7Tp1"
+mkdir -p "${b7dir}/in_bold3Tp2"
+
+
+$FSLDIR/bin/flirt -dof 6 \
+	-forcescaling -paddingsize 10 -minsampling 1 -bins 256 \
+	-in ${b7dir}/brain \
+	-ref ${b3dir}/brain \
+	-omat "${b7dir}/in_bold3Tp2/xfm_6dof.mat" \
+	-out "${b7dir}/in_bold3Tp2/brain"
+
+$FSLDIR/bin/convert_xfm \
+	-omat "${b3dir}/in_bold7Tp1/xfm_6dof.mat" \
+	-inverse "${b7dir}/in_bold3Tp2/xfm_6dof.mat"
+
+$FSLDIR/bin/flirt \
+	-in "${b3dir}/brain" \
+	-ref "${b7dir}/brain" \
+	-applyxfm \
+	-init "${b3dir}/in_bold7Tp1/xfm_6dof.mat" \
+	-out "${b3dir}/in_bold7Tp1/brain"
