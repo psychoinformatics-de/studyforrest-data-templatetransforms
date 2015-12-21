@@ -1,1 +1,3 @@
 nipype.cfg
+qa/
+condor_logs
