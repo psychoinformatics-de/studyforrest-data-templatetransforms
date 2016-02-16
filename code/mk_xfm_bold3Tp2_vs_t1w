@@ -11,66 +11,88 @@ bolddir="${subj}/bold3Tp2"
 mkdir -p "${bolddir}/in_t1w"
 mkdir -p "${t1dir}/in_bold3Tp2"
 
+## old coreg
+#$FSLDIR/bin/flirt -dof 6 \
+	#-in ${bolddir}/brain \
+	#-ref ${t1dir}/brain_nobias \
+	#-omat "${bolddir}/in_t1w/xfm_6dof.mat" \
+	#-out "${bolddir}/in_t1w/brain"
+
+#$FSLDIR/bin/convert_xfm \
+	#-omat "${t1dir}/in_bold3Tp2/xfm_6dof.mat" \
+	#-inverse "${bolddir}/in_t1w/xfm_6dof.mat"
+
+#$FSLDIR/bin/flirt \
+	#-in "${t1dir}/brain_nobias" \
+	#-ref "${bolddir}/brain" \
+	#-applyxfm \
+	#-init "${t1dir}/in_bold3Tp2/xfm_6dof.mat" \
+	#-out "${t1dir}/in_bold3Tp2/brain"
+
+# coregister t1w to bold ..
+$FSLDIR/bin/flirt -dof 6 \
+    -in "${t1dir}/brain_nobias" \
+    -ref "${bolddir}/brain" \
+    -omat "${t1dir}/in_bold3Tp2/xfm_6dof.mat" \
+    -out "${t1dir}/in_bold3Tp2/brain"
+
+# .. and inverse transformation matrix ..
+$FSLDIR/bin/convert_xfm \
+    -omat "${bolddir}/in_t1w/xfm_6dof.mat" \
+    -inverse "${t1dir}/in_bold3Tp2/xfm_6dof.mat"
+
+# .. and applyXfm to coregister bold to t1w. 
+$FSLDIR/bin/flirt \
+    -in "${bolddir}/brain" \
+    -ref "${t1dir}/brain_nobias" \
+    -applyxfm \
+    -init "${bolddir}/in_t1w/xfm_6dof.mat" \
+    -out "${bolddir}/in_t1w/brain"
+
+
+
+##
+## occiptal focus
+##
+
+#$FSLDIR/bin/fslmaths \
+	#/usr/share/data/mni-structural-atlas/MNI/MNI-maxprob-thr0-2mm.nii.gz \
+	#-thr 5 -uthr 5 -bin -dilF -dilF \
+	#${t1dir}/in_mni152/dil_occ_mask.nii.gz
+
+#$FSLDIR/bin/flirt \
+	#-in ${t1dir}/in_mni152/dil_occ_mask.nii.gz \
+	#-ref "${t1dir}/brain" \
+	#-applyxfm \
+	#-init "${t1dir}/in_mni152/tmpl2subj.mat" \
+	#-out "${t1dir}/dil_occ_mask"
+
+#$FSLDIR/bin/flirt \
+	#-in "${t1dir}/dil_occ_mask" \
+	#-ref "${bolddir}/brain" \
+	#-applyxfm \
+	#-init "${t1dir}/in_bold3Tp2/xfm_6dof.mat" \
+	#-out "${bolddir}/dil_occ_mask"
 
 #$FSLDIR/bin/flirt -dof 6 \
-#	-in ${bolddir}/brain \
-#	-ref ${t1dir}/brain_nobias \
-#	-omat "${bolddir}/in_t1w/xfm_6dof.mat" \
-#	-out "${bolddir}/in_t1w/brain"
-#
+	#-in ${bolddir}/brain \
+	#-ref ${t1dir}/brain_nobias \
+	#-refweight ${t1dir}/dil_occ_mask \
+	#-inweight ${bolddir}/dil_occ_mask \
+	#-init "${bolddir}/in_t1w/xfm_6dof.mat" \
+	#-searchrx -20 20 \
+	#-searchry -20 20 \
+	#-searchrz -20 20 \
+	#-omat "${bolddir}/in_t1w/xfm_6dof_occ.mat" \
+	#-out "${bolddir}/in_t1w/brain_occ"
+
 #$FSLDIR/bin/convert_xfm \
-#	-omat "${t1dir}/in_bold3Tp2/xfm_6dof.mat" \
-#	-inverse "${bolddir}/in_t1w/xfm_6dof.mat"
-#
+	#-omat "${t1dir}/in_bold3Tp2/xfm_6dof_occ.mat" \
+	#-inverse "${bolddir}/in_t1w/xfm_6dof_occ.mat"
+
 #$FSLDIR/bin/flirt \
-#	-in "${t1dir}/brain_nobias" \
-#	-ref "${bolddir}/brain" \
-#	-applyxfm \
-#	-init "${t1dir}/in_bold3Tp2/xfm_6dof.mat" \
-#	-out "${t1dir}/in_bold3Tp2/brain"
-
-#
-# occiptal focus
-#
-
-$FSLDIR/bin/fslmaths \
-	/usr/share/data/mni-structural-atlas/MNI/MNI-maxprob-thr0-2mm.nii.gz \
-	-thr 5 -uthr 5 -bin -dilF -dilF \
-	${t1dir}/in_mni152/dil_occ_mask.nii.gz
-
-$FSLDIR/bin/flirt \
-	-in ${t1dir}/in_mni152/dil_occ_mask.nii.gz \
-	-ref "${t1dir}/brain" \
-	-applyxfm \
-	-init "${t1dir}/in_mni152/tmpl2subj.mat" \
-	-out "${t1dir}/dil_occ_mask"
-
-$FSLDIR/bin/flirt \
-	-in "${t1dir}/dil_occ_mask" \
-	-ref "${bolddir}/brain" \
-	-applyxfm \
-	-init "${t1dir}/in_bold3Tp2/xfm_6dof.mat" \
-	-out "${bolddir}/dil_occ_mask"
-
-$FSLDIR/bin/flirt -dof 6 \
-	-in ${bolddir}/brain \
-	-ref ${t1dir}/brain_nobias \
-	-refweight ${t1dir}/dil_occ_mask \
-	-inweight ${bolddir}/dil_occ_mask \
-	-init "${bolddir}/in_t1w/xfm_6dof.mat" \
-	-searchrx -20 20 \
-	-searchry -20 20 \
-	-searchrz -20 20 \
-	-omat "${bolddir}/in_t1w/xfm_6dof_occ.mat" \
-	-out "${bolddir}/in_t1w/brain_occ"
-
-$FSLDIR/bin/convert_xfm \
-	-omat "${t1dir}/in_bold3Tp2/xfm_6dof_occ.mat" \
-	-inverse "${bolddir}/in_t1w/xfm_6dof_occ.mat"
-
-$FSLDIR/bin/flirt \
-	-in "${t1dir}/brain_nobias" \
-	-ref "${bolddir}/brain" \
-	-applyxfm \
-	-init "${t1dir}/in_bold3Tp2/xfm_6dof_occ.mat" \
-	-out "${t1dir}/in_bold3Tp2/brain_occ"
+	#-in "${t1dir}/brain_nobias" \
+	#-ref "${bolddir}/brain" \
+	#-applyxfm \
+	#-init "${t1dir}/in_bold3Tp2/xfm_6dof_occ.mat" \
+	#-out "${t1dir}/in_bold3Tp2/brain_occ"
